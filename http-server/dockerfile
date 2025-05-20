@@ -1,0 +1,8 @@
+# Use the official Apache HTTPD image as a base
+FROM httpd:2.4
+
+# Copy the index.html file from the current directory (html folder) to the Apache HTML directory inside the container
+COPY index.html /usr/local/apache2/htdocs/
+COPY httpd.conf /usr/local/apache2/conf/httpd.conf
+# Expose port 80
+EXPOSE 80
