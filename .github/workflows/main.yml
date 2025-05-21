@@ -62,39 +62,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup SSH
+      - name: Setup SSH connection
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H xiangtong.qu.takima.cloud >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy containers on remote server
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin@xiangtong.qu.takima.cloud << 'EOF'
-            sudo docker pull xiangtong/tp-devops-backend:1.0
-            sudo docker pull xiangtong/tp-devops-database:1.0
-            sudo docker pull xiangtong/tp-devops-httpd:1.0
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            docker rm -f backend || true
+            docker rm -f my-postgres-container || true
+            docker rm -f my-http-container || true
 
-            sudo docker rm -f backend || true
-            sudo docker rm -f my-postgres-container || true
-            sudo docker rm -f my-http-container || true
+            docker network create app-network || true
 
-            sudo docker network create app-network || true
+            docker pull xiangtong/tp-devops-database:1.0
+            docker pull xiangtong/tp-devops-backend:1.0
+            docker pull xiangtong/tp-devops-httpd:1.0
 
-            sudo docker run -d --name my-postgres-container \
+            docker run -d --name my-postgres-container \
               --network app-network \
               -e POSTGRES_DB=db \
               -e POSTGRES_USER=usr \
               -e POSTGRES_PASSWORD=pwd \
               xiangtong/tp-devops-database:1.0
 
-            sudo docker run -d --name backend \
+            docker run -d --name backend \
               --network app-network \
               -p 8080:8080 \
               xiangtong/tp-devops-backend:1.0
 
-            sudo docker run -d --name my-http-container \
+            docker run -d --name my-http-container \
               --network app-network \
               -p 80:80 \
               xiangtong/tp-devops-httpd:1.0
