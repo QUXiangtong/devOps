@@ -54,3 +54,48 @@ jobs:
           context: ./http-server
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
           push: true
+
+  deploy-to-server:
+    needs: build-and-push-docker-image
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy containers on remote server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            docker pull xiangtong/my-backend:1.0
+            docker pull xiangtong/my-database:1.0
+            docker pull xiangtong/my-httpd:1.0
+
+            docker rm -f backend || true
+            docker rm -f my-postgres-container || true
+            docker rm -f my-http-container || true
+
+            docker network create app-network || true
+
+            docker run -d --name my-postgres-container \
+              --network app-network \
+              -e POSTGRES_DB=db \
+              -e POSTGRES_USER=usr \
+              -e POSTGRES_PASSWORD=pwd \
+              xiangtong/my-database:1.0
+
+            docker run -d --name backend \
+              --network app-network \
+              -p 8080:8080 \
+              xiangtong/my-backend:1.0
+
+            docker run -d --name my-http-container \
+              --network app-network \
+              -p 80:80 \
+              xiangtong/my-httpd:1.0
+          EOF
+
