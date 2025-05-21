@@ -20,8 +20,12 @@ jobs:
       - name: Build and test with Maven
         run: mvn clean verify --file demo/pom.xml
 
+      - name: Run SonarCloud Quality Gate
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=<your-project-key> -Dsonar.organization=<your-organization> -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }} --file demo/pom.xml
+
   build-and-push-docker-image:
     needs: test-backend
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
@@ -35,5 +39,18 @@ jobs:
         with:
           context: ./demo
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-backend:latest
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: true
 
+      - name: Build image and push database
+        uses: docker/build-push-action@v6
+        with:
+          context: ./database
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-database:latest
+          push: true
+
+      - name: Build image and push httpd
+        uses: docker/build-push-action@v6
+        with:
+          context: ./httpd
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-httpd:latest
+          push: true
