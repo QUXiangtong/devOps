@@ -60,6 +60,7 @@ It's used to secure and protect sensible data in a automized process
 we put needs on a job to make it dependent on the successful completion of the build-and-test-backend job.
 
 ## 2-4 For what purpose do we need to push docker images?
+We push Docker images to a remote registry to make them accessible from any environment or machine. This allows other developers, servers, or deployment pipelines to pull and run the exact same container, ensuring consistency and reproducibility across development, testing, and production environments. Without pushing, the image remains local and cannot be reused elsewhere
 
 ## 3-1 Document your inventory and base commands
 Test the connexion : ansible all -i inventories/setup.yml -m ping
@@ -68,3 +69,6 @@ desinstall Apache2 :ansible all -i inventories/setup.yml -m apt -a "name=apache2
 
 ## 3-2 Document your playbook
 The playbook installs and configures Docker on all target servers using a dedicated role called docker. It runs with administrative privileges, gathers system information, and delegates all tasks—such as installing dependencies, adding Docker’s repository, and starting the Docker service—to the role. This structure ensures the playbook is clean, reusable, and easy to maintain.
+
+## 3-3 Document your docker_container tasks configuration
+In our Ansible deployment, we used the `docker_container` module to launch three key services: the PostgreSQL database, the backend API, and the HTTP proxy. Each container task specifies the container `name`, the `image` pulled from DockerHub, necessary `environment variables` (like database credentials and URLs), the custom Docker `network` for inter-service communication, and exposed `ports` where needed. We also configured the `ansible_python_interpreter` to use the virtual environment where the Docker SDK is installed, ensuring compatibility. This setup allows automated, reproducible service deployment on the remote server.
