@@ -1,0 +1,19 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/launch_app
+- name: Launch backend container
+  docker_container:
+    name: backend
+    image: xiangtong/tp-devops-backend:latest
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/db
+      SPRING_DATASOURCE_USERNAME: usr
+      SPRING_DATASOURCE_PASSWORD: pwd
+    networks:
+      - name: my_app_net
+    published_ports:
+      - "8080:8080"
+    state: started
+  vars:
+    ansible_python_interpreter: /opt/docker_venv/bin/python
+
