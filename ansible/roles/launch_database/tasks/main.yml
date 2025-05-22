@@ -5,6 +5,7 @@
   docker_container:
     name: postgres
     image: xiangtong/tp-devops-database:latest
+    pull: always
     env:
       POSTGRES_DB: db
       POSTGRES_USER: usr
