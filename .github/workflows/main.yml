@@ -70,30 +70,42 @@ jobs:
       - name: Deploy containers on remote server
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+
+
             docker rm -f backend || true
-            docker rm -f my-postgres-container || true
-            docker rm -f my-http-container || true
+            docker rm -f postgres || true
+            docker rm -f proxy || true
+            docker rm -f my-http-container || true  
+
 
             docker network create app-network || true
 
+       
             docker pull xiangtong/tp-devops-database:1.0
             docker pull xiangtong/tp-devops-backend:1.0
             docker pull xiangtong/tp-devops-httpd:1.0
 
-            docker run -d --name my-postgres-container \
+       
+            docker run -d --name postgres \
               --network app-network \
               -e POSTGRES_DB=db \
               -e POSTGRES_USER=usr \
               -e POSTGRES_PASSWORD=pwd \
               xiangtong/tp-devops-database:1.0
 
+       
             docker run -d --name backend \
               --network app-network \
               -p 8080:8080 \
+              -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/db \
+              -e SPRING_DATASOURCE_USERNAME=usr \
+              -e SPRING_DATASOURCE_PASSWORD=pwd \
               xiangtong/tp-devops-backend:1.0
 
-            docker run -d --name my-http-container \
+        
+            docker run -d --name proxy \
               --network app-network \
               -p 80:80 \
               xiangtong/tp-devops-httpd:1.0
+
           EOF
