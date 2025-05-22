@@ -5,6 +5,7 @@
   docker_container:
     name: backend
     image: xiangtong/tp-devops-backend:latest
+    pull: always
     env:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/db
       SPRING_DATASOURCE_USERNAME: usr
