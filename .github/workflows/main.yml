@@ -67,8 +67,8 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /Users/tong/Desktop/devOps/id_rsa
+          chmod 600 /Users/tong/Desktop/devOps/id_rsa
           ssh-keyscan -H xiangtong.qu.takima.cloud >> ~/.ssh/known_hosts
 
       - name: Install Ansible
