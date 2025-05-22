@@ -5,6 +5,7 @@
   docker_container:
     name: proxy
     image: xiangtong/tp-devops-httpd:latest
+    pull: always
     ports:
       - "80:80"
     networks:
